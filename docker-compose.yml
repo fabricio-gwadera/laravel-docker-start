@@ -1,0 +1,86 @@
+version: "3.9"
+
+services:
+    # image project
+    app:
+        build:
+            args:
+                user: rokpixel
+                uid: 1000
+            context: ./
+            dockerfile: Dockerfile
+        image: rockpixel-docker
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+            - ./.docker/conf/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+        depends_on: 
+            - redis
+            - mysql
+        networks: 
+            - backend
+        platform: linux
+    
+    # nginx
+    nginx:
+        image: nginx:alpine
+        restart: unless-stopped
+        ports: 
+            - "80:80"
+            - "443:443"
+        volumes: 
+            - ./:/var/www
+            - ./.docker/conf/nginx/:/etc/nginx/conf.d/
+        networks: 
+            - backend
+        platform: linux
+
+    # db mysql
+    mysql:
+        image: mariadb:10
+        restart: unless-stopped
+        environment: 
+            MYSQL_ROOT_USER: root
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+        volumes: 
+            - ./.docker/database:/var/lib/mysql
+            - ./.docker/conf/mysql/my.cnf:/etc/mysql/my.cnf
+        ports: 
+            - "3306:3306"
+        command:
+            'mysqld --innodb-flush-method=fsync --innodb-use-native-aio=0 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci'
+        networks: 
+            - backend
+        platform: linux
+
+    # redis
+    redis:
+        image: redis:latest
+        networks: 
+            - backend
+        platform: linux
+
+    # phpmyadmin
+    phpmyadmin:
+        image: phpmyadmin
+        ports:
+            - 8080:80
+        links:
+            - mysql
+        environment:
+            - PMA_HOST=mysql
+            - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+            - UPLOAD_LIMIT=300M
+        networks:
+            - backend
+        platform: linux
+        depends_on:
+            - mysql
+
+networks: 
+    backend:
+        driver: bridge
