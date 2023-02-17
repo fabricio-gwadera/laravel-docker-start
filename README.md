@@ -94,4 +94,7 @@ Update the apt package index:
 
 To install the latest version, run:
 
-`sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin`
+```
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+git config --global core.autocrlf false
+```
