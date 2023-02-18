@@ -96,5 +96,8 @@ To install the latest version, run:
 
 ```
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-git config --global core.autocrlf false
+
+git config core.autocrlf false
+git rm --cached -r .
+git reset --hard
 ```
